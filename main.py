@@ -3,7 +3,8 @@ import json
 from os import environ as env
 from telegram import Update, ChatFullInfo
 from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler
+from telegram.ext.filters import UpdateFilter
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -45,10 +46,11 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
 async def start_command_handler(update: Update, _):
     await update.message.reply_text(replies['start'])
 
+class PersonalMessageFilter(UpdateFilter):
+    def filter(self, update: Update) -> bool:
+        return bool(update.message)
+
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message is None:
-        logger.warning(f'update.message is None, update = {update.to_json()}')
-        return
     reply = replies['admin_schizo'] if await get_admin_users(update, context) else replies['sent_ok']
     await update.message.reply_text(reply)
     for user in await get_notify_users(context):
@@ -58,5 +60,5 @@ if __name__ == '__main__':
     app = ApplicationBuilder().token(env['TOKEN']).build()
     app.add_error_handler(error_handler)
     app.add_handler(CommandHandler('start', start_command_handler))
-    app.add_handler(MessageHandler(filters.ALL, message_handler))
+    app.add_handler(MessageHandler(PersonalMessageFilter(), message_handler))
     app.run_polling()
