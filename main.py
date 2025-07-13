@@ -1,9 +1,5 @@
 #!/usr/bin/env /usr/bin/python3
-import asyncio
-import html
-import json
 import logging
-import traceback
 from os import getenv
 
 logging.basicConfig(
@@ -18,6 +14,11 @@ if any(getenv(env) is None for env in required_env):
     for not_present_env in [env for env in required_env if getenv(env) is None]:
         logger.error('%s environment variable is not present', not_present_env)
     exit(1)
+
+import asyncio
+import traceback
+import html
+import json
 
 from telegram import Update, ChatFullInfo
 from telegram.constants import ParseMode
