@@ -35,7 +35,7 @@ replies = {
 async def get_notify_users(context: ContextTypes.DEFAULT_TYPE) -> list[ChatFullInfo]:
     return await asyncio.gather(*[context.bot.get_chat(i) for i in getenv('NOTIFY_CHAT_IDS').split(':')])
 
-async def get_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def is_user_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return update.effective_chat.username in [
         admin.user.username for admin in await context.bot.get_chat_administrators(getenv('CHANNEL_ID'))
     ]
@@ -63,7 +63,7 @@ class PersonalMessageFilter(UpdateFilter):
         return bool(update.message)
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    reply = replies['admin_schizo'] if await get_admin_users(update, context) else replies['sent_ok']
+    reply = replies['admin_schizo'] if await is_user_admin(update, context) else replies['sent_ok']
     await update.message.reply_text(reply)
     for user in await get_notify_users(context):
         await update.message.forward(user.id)
